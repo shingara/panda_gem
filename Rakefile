@@ -4,7 +4,7 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "panda"
+    gem.name = "faraday-panda"
     gem.summary = %Q{Panda Client}
     gem.description = %Q{Panda Client}
     gem.email = "info@pandastream.com"
