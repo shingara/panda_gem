@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://github.com/newbamboo/panda_gem"
     gem.authors = ["New Bamboo"]
     gem.add_dependency "ruby-hmac", ">= 0.3.2"
-    gem.add_dependency "rest-client", ">= 1.4"
+    gem.add_dependency "shin-faraday", "~> 0.4.6"
     gem.add_dependency "json", ">= 1.2"
   end
   Jeweler::GemcutterTasks.new

@@ -52,32 +52,39 @@ module Panda
     # Authenticated requests
 
     def get(request_uri, params={})
-      @connection = RestClient::Resource.new(api_url)
       rescue_restclient_exception do
-        query = signed_query("GET", request_uri, params)
-        body_of @connection[request_uri + '?' + query].get
+        query = signed_params("GET", request_uri, params)
+        connection.get do |req|
+          req.url File.join(connection.path_prefix, request_uri), query
+        end.body
       end
     end
 
+
     def post(request_uri, params={})
-      @connection = RestClient::Resource.new(api_url)
       rescue_restclient_exception do
-        body_of @connection[request_uri].post(signed_params("POST", request_uri, params))
+        connection.post do |req|
+          req.url File.join(connection.path_prefix, request_uri)
+          req.body = signed_params("POST", request_uri, params)
+        end.body
       end
     end
 
     def put(request_uri, params={})
-      @connection = RestClient::Resource.new(api_url)
       rescue_restclient_exception do
-        body_of @connection[request_uri].put(signed_params("PUT", request_uri, params))
+        connection.put do |req|
+          req.url File.join(connection.path_prefix, request_uri)
+          req.body = signed_params("PUT", request_uri, params)
+        end.body
       end
     end
 
     def delete(request_uri, params={})
-      @connection = RestClient::Resource.new(api_url)
       rescue_restclient_exception do
-        query = signed_query("DELETE", request_uri, params)
-        body_of @connection[request_uri + '?' + query].delete
+        connection.delete do |req|
+          req.url File.join(connection.path_prefix, request_uri)
+          req.body = signed_params("DELETE", request_uri, params)
+        end.body
       end
     end
 
@@ -103,7 +110,7 @@ module Panda
 
     # Shortcut to setup your bucket
     def setup_bucket(params={})
-      granting_params = { 
+      granting_params = {
         :s3_videos_bucket => params[:bucket],
         :user_aws_key => params[:access_key],
         :user_aws_secret => params[:secret_key]
@@ -131,41 +138,14 @@ module Panda
       def rescue_restclient_exception(&block)
         begin
           yield
-        rescue RestClient::Exception => e
-          format_to(e.http_body)
-        end
-      end
-
-      # API change on rest-client 1.4
-      def body_of(response)
-        json_response = response.respond_to?(:body) ? response.body : response
-        format_to(json_response)
-      end
-
-      def format_to(response)
-        begin
-          if self.format == "json"
-            response
-          elsif defined?(ActiveSupport::JSON)
-            ActiveSupport::JSON.decode(response)
-          else
-            JSON.parse(response)
-          end
-        rescue JSON::ParserError => e
-          # if not used with PandaResources
-          # don't raise Service Not Available because
-          # maybe the host, the url, or anything is wrongly setup
-          if @raise_error
-            raise ServiceNotAvailable.new
-          else
-            raise e
-          end
+        rescue Faraday::Error::ParsingError => e
+          raise ServiceNotAvailable.new
         end
       end
 
       def init_from_uri(uri)
         heroku_uri = URI.parse(uri)
-        
+
         @access_key = heroku_uri.user
         @secret_key = heroku_uri.password
         @cloud_id   = heroku_uri.path[1..-1]
@@ -184,6 +164,13 @@ module Panda
         @api_port   = params["api_port"]    || params[:api_port]
         @prefix     = params["prefix_url"]  || "v#{@api_version}"
       end
+
+    def connection
+      @connection ||= Faraday::Connection.new(:url => api_url) do |builder|
+        builder.adapter Faraday.default_adapter
+        builder.response :yajl
+      end
+    end
   end
 end
 

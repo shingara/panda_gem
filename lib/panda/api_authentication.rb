@@ -13,7 +13,7 @@ module Panda
 
       query_string = canonical_querystring(params)
 
-      string_to_sign = verb.to_s.upcase + "\n" + 
+      string_to_sign = verb.to_s.upcase + "\n" +
           host.downcase + "\n" +
           request_uri + "\n" +
           query_string
@@ -25,14 +25,14 @@ module Panda
     end
 
     # param keys should be strings, not symbols please. return a string joined
-    # by & in canonical order. 
+    # by & in canonical order.
     def self.canonical_querystring(params)
-      # I hope this built-in sort sorts by byte order, that's what's required. 
+      # I hope this built-in sort sorts by byte order, that's what's required.
       params.keys.sort.collect {|key| [url_encode(key), url_encode(params[key])].join("=") }.join("&")
     end
 
     # Turns a hash into a query string, returns the query string.
-    # url-encodes everything to Amazon's specifications. 
+    # url-encodes everything to Amazon's specifications.
     def self.hash_to_query(hash)
       hash.collect{|key, value| url_encode(key) + "=" + url_encode(value) }.join("&")
     end

@@ -1,8 +1,9 @@
 source :rubygems
 
 gem "ruby-hmac",">= 0.3.2"
-gem "rest-client"
+gem "shin-faraday", :require => 'faraday'
 gem "json"
+gem "yajl-ruby"
 
 gem "jeweler"
 gem "rake"

@@ -1,4 +1,4 @@
-require 'restclient'
+require 'faraday'
 require 'forwardable'
 require 'json' unless defined?(ActiveSupport::JSON)
 
